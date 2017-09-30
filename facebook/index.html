@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Facebook's Crawer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+    <script src="doajax.js"></script>
+    <style>
+        .container {
+            padding-top: 20px;
+        }
+        
+        .col-content {
+            width: 40%;
+        }
+        
+        .col-img {
+            width: 40%;
+        }
+        
+        .col-time {
+            width: 20%;
+        }
+        
+        table {
+            table-layout: fixed;
+        }
+        
+        td img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+    <script>
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId: '363845507371252',
+                xfbml: true,
+                version: 'v2.10'
+            });
+            FB.AppEvents.logPageView();
+        };
+
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {
+                return;
+            }
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function loginFunction() {
+            FB.login(function() {}, {
+                scope: 'publish_actions'
+            });
+            var $login, $getlink;
+            $login = $("#login-btn");
+            $getlink = $("#get-data-btn");
+            $login.hide();
+            $getlink.show();
+        }
+
+        function logoutFunction() {
+            FB.getLoginStatus(function(response) {
+                if (response.status === 'connected') {
+                    console.log('Logged in.');
+                } else {
+                    FB.login();
+                }
+            });
+        }
+
+        function printData(data) {
+            window.counter = 0;
+            var $element = $("table").children("tbody");
+            for (var i = 0; i < data.length; i++) {
+                $element.append(createTrEl(data[i]));
+            }
+        }
+
+        function createTrEl(data) {
+            var trEl = document.createElement("tr"),
+                message = "",
+                img = "",
+                createdDate = "";
+            if (data.message) message = data.message.replace(/\n/g, '<br/>');
+            if (data.message) createdDate = data.created_time.replace(/T/g, '<br/>');
+            if (data.full_picture) img = data.full_picture;
+            trEl.append(createTdEl("col-content", message));
+            trEl.append(createTdEl("col-img", createImgEl(img)));
+            trEl.append(createTdEl("col-time", createdDate));
+            return trEl;
+        }
+
+        function createImgEl(img) {
+            if (!img) return "";
+            var imgEl = document.createElement("img");
+            imgEl.src = img;
+            return imgEl;
+        }
+
+        function createTdEl(className, content) {
+            var tdEl = document.createElement("td");
+            tdEl.classList.add(className);
+            if (typeof(content) == "object") {
+                tdEl.append(content);
+            } else {
+                tdEl.innerHTML = content;
+            }
+            return tdEl;
+        }
+
+        function getPageId() {
+            $pageName = $("#page-link").val();
+            if ($pageName === '') {
+                alert('enter your page link');
+                return;
+            }
+            $pageName = "/" + $pageName + "/";
+            FB.api($pageName,
+                function(response) {
+                    $("table > tbody").html("");
+                    getPageInfo(response.id);
+                });
+        }
+
+        function getPageInfo(pageId) {
+            FB.login(function() {
+                FB.api('/' + pageId + '/posts?fields=full_picture,message,created_time,story', function(response) {
+                    doAjax(response, printData, true);
+                });
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h4 class="card-header">PAGE'S POSTS CRAWLER</h4>
+            <div class="card-body">
+                <div class="input-group">
+                    <span class="input-group-addon" id="basic-addon1">page Id</span>
+                    <input id="page-link" type="text" class="form-control" placeholder="page's link: https://www.facebook.com/pagename/">
+                    <button id="login-btn" class="btn btn-primary" onclick="loginFunction()">login</button>
+                    <button id="get-data-btn" class="btn btn-primary" style="display:none;" onclick="getPageId()">Get Data</button>
+                </div>
+                <p></p>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <!-- <th>Id</th> -->
+                            <th class="col-content">Content</th>
+                            <th class="col-img">Image</th>
+                            <!-- <th>Story</th> -->
+                            <th class="col-time">Created date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+
+</html>
