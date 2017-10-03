@@ -9,7 +9,6 @@
     <script src="jquery-3.2.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-    <script src="doajax.js"></script>
     <style>
         .container {
             padding-top: 20px;
@@ -132,12 +131,42 @@
                 });
         }
 
+        function sortData(data) {
+            data.sort(function(a, b) {
+                var keyA = a.created_time,
+                    keyB = b.created_time;
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+            });
+            printData(data);
+        }
+
         function getPageInfo(pageId) {
             FB.login(function() {
                 FB.api('/' + pageId + '/posts?fields=full_picture,message,created_time,story', function(response) {
-                    doAjax(response, printData, true);
+                    doAjax(response, [], sortData);
                 });
             });
+        }
+
+
+
+        function doAjax(res, listData, callback) {
+            $.each(res.data, function(i) {
+                listData.push(res.data[i]);
+            });
+
+            if (res.paging) {
+                if (!res.paging.next) {
+                    callback(listData);
+                    return;
+                }
+                $.get(res.paging.next, function(response) {
+                    doAjax(response, listData, callback);
+                });
+            }
         }
     </script>
 </head>
