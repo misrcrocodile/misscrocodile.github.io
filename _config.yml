@@ -12,11 +12,11 @@ description: > # this means to ignore newlines until "baseurl:"
   description is not important rightnow. I just need to test my page and confirm it work or not.
   This blog will mention about Technical, and so on ...
 baseurl: "/blog" # the subpath of your site, e.g. /blog
-production_url : https://misscrocodile.github.com/blog
-BASE_PATH : https://misscrocodile.github.com/blog
-url: "https://misscrocodile.github.com/blog" # the base hostname & protocol for your site
-twitter_username: jekyllrb
-github_username:  jekyll
+production_url : http://misscrocodile.github.com/blog
+BASE_PATH : http://misscrocodile.github.com/blog
+url: "http://misscrocodile.github.com/blog" # the base hostname & protocol for your site
+twitter_username: misscrocodile
+github_username:  misscrocodile
 
 # Build settings
 markdown: kramdown
