@@ -183,10 +183,13 @@
                 if(confirm("Websocket's connect is dead now.\nDo you want to reconnect?")){
                     console.log("reconnecting!");
                     connection = initWebsocket();
-                    var ipAddress = localStorage.getItem('espIpAddress');
-                    connection.send(item.value);
+                    
+                }else{
+                    return;
                 }
             }
+            var ipAddress = localStorage.getItem('espIpAddress');
+            connection.send(item.value);
             document.activeElement.blur();
         }
     </script>
