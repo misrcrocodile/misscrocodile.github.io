@@ -150,59 +150,43 @@
     <script src="js/jquery-3.2.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script>
-        var connection = new WebSocket('wss://shrouded-peak-81739.herokuapp.com/', ['webClient']);
-        console.log("connection: ", connection);
-        connection.onopen = function () {
-            connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date());
-            connection.send('ping');
 
-            /*	setInterval(function() {
-                    connection.send('Time: ' + new Date()); 
-                }, 20);
-            */
-            connection.send('Time: ' + new Date());
-        };
+        var isConnecting = false;
 
-        connection.onerror = function (error) {
-            console.log('WebSocket Error ', error);
-        };
+        function initWebsocket() {
+            var connection = new WebSocket('wss://shrouded-peak-81739.herokuapp.com/', ['webClient']);
+            console.log("connection: ", connection);
+            connection.onopen = function () {
+                isConnecting = true;
+                connection.send('Message from Browser to ESP8266 yay its Working!! ' + new Date());
+                connection.send('ping');
+                connection.send('Time: ' + new Date());
+            };
 
-        connection.onmessage = function (e) {
-            console.log('Server: ', e.data);
-            //connection.send('Time: ' + new Date());
-        };
+            connection.onerror = function (error) {
+                console.log('WebSocket Error ', error);
+                isConnecting = false;
+            };
 
-        // document.onreadystatechange = function () {
-        //     if (document.readyState == "complete") {
-        //         resetIp(false);
-        //     }
-        // }
+            connection.onclose = function() {
+                isConnecting = false;
+            }
 
-        // function resetIp(flag) {
-        //     var ipAddress = localStorage.getItem('espIpAddress');
-        //     if (!ipAddress || flag) {
-        //         var ipPattern = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
-        //         var input = prompt("enter ip address", "");
-        //         if (!input) {
-        //             if (ipAddress) {
-        //                 input = ipAddress;
-        //             } else {
-        //                 input = '127.0.0.1';
-        //             }
-        //         }
-        //         if (!ipPattern.test(input)) {
-        //             input = '127.0.0.1';
-        //         }
-        //         localStorage.setItem('espIpAddress', input);
-        //     }
-        //     document.activeElement.blur();
-        // }
-
-
-
+            connection.onmessage = function (e) {
+                console.log('Server: ', e.data);
+            };
+            return connection;
+        }
+        var connection = initWebsocket();
         function sendRequest(item) {
-            var ipAddress = localStorage.getItem('espIpAddress');
-            connection.send(item.value);
+            if(!isConnecting) {
+                if(confirm("Websocket's connect is dead now.\nDo you want to reconnect?")){
+                    console.log("reconnecting!");
+                    connection = initWebsocket();
+                    var ipAddress = localStorage.getItem('espIpAddress');
+                    connection.send(item.value);
+                }
+            }
             document.activeElement.blur();
         }
     </script>
